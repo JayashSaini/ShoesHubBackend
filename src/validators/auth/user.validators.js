@@ -17,14 +17,14 @@ const userRegisterValidator = () => {
       .isLowercase()
       .withMessage('Username must be lowercase')
       .isLength({ min: 3 })
-      .withMessage('Username must be at lease 3 characters long')
-      .custom(async (value) => {
-        // Check if username already exists in the database
-        const exitsingUser = await User.findOne({ username: value });
-        if (exitsingUser) {
-          throw new Error('Username already exists');
-        }
-      }),
+      .withMessage('Username must be at lease 3 characters long'),
+    // .custom(async (value) => {
+    //   // Check if username already exists in the database
+    //   const exitsingUser = await User.findOne({ username: value });
+    //   if (exitsingUser) {
+    //     throw new Error('Username already exists');
+    //   }
+    // }),
     body('password')
       .trim()
       .notEmpty()
