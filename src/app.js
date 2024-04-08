@@ -3,7 +3,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const morgan = require('morgan');
-
+const morganMiddleware = require('./logger/morgan.logger.js');
 const app = express();
 
 function startApp() {
@@ -24,6 +24,11 @@ function startApp() {
 
   // Log requests with Morgan middleware (use 'combined' format for production)
   app.use(morgan('dev'));
+  app.use(morganMiddleware);
+
+  app.get('/api/v1/wow', (req, res) => {
+    res.json({ wow: 'wow' });
+  });
 }
 
 module.exports = { app, startApp };
