@@ -16,7 +16,7 @@ const connectDB = require('./db');
       console.info(`🚝 Server is running at port ${process.env.PORT}`);
     });
   } catch (error) {
-    console.error('MongoDB conection error : ' + error);
+    console.error('Error Occur while starting the server : ' + error);
     process.exit(1);
   }
 })();
