@@ -26,9 +26,7 @@ function startApp() {
   app.use(morgan('dev'));
   app.use(morganMiddleware);
 
-  app.get('/api/v1/wow', (req, res) => {
-    res.json({ wow: 'wow' });
-  });
+  app.use(errorHandler);
 }
 
 module.exports = { app, startApp };
