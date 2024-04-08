@@ -1,5 +1,4 @@
-let mongoose,
-  { Schema } = require('mongoose');
+const mongoose = require('mongoose');
 
 const {
   UserRolesEnum,
@@ -8,7 +7,7 @@ const {
   AvailableSocialLogins,
 } = require('../../constants.js');
 
-const useSchema = new Schema(
+const userSchema = new mongoose.Schema(
   {
     avatar: {
       type: {
@@ -73,5 +72,5 @@ const useSchema = new Schema(
   { timestamps: true }
 );
 
-const User = mongoose.model('User', useSchema);
-module.exports = User;
+let User = mongoose.model('User', userSchema);
+module.exports = { User };
