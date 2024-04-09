@@ -17,7 +17,24 @@ const userRegisterValidator = () => {
       .isLowercase()
       .withMessage('Username must be lowercase')
       .isLength({ min: 3 })
-      .withMessage('Username must be at lease 3 characters long'),
+      .withMessage('Username must be at lease 3 characters long')
+      .custom((value) => {
+        // Custom validation to check if the username contains only letters and numbers
+        if (/^[a-zA-Z0-9]+$/.test(value)) {
+          return true;
+        } else {
+          throw new Error('Username must contain only letters and numbers');
+        }
+      })
+      .withMessage('Username must contain only letters and numbers')
+      .custom((value) => {
+        if (/[a-zA-Z]/.test(value)) {
+          return true;
+        } else {
+          throw new Error('Username must contain at least one letter');
+        }
+      })
+      .withMessage('Username must contain at least one letter'),
     // .custom(async (value) => {
     //   // Check if username already exists in the database
     //   const exitsingUser = await User.findOne({ username: value });
