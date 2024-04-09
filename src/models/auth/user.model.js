@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-import crypto from 'crypto';
+const crypto = require('crypto');
 
 const {
   UserRolesEnum,
