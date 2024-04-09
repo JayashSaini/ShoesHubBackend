@@ -3,7 +3,7 @@ const Mailgen = require('mailgen');
 
 const sendEmail = async (options) => {
   const mailGenerator = new Mailgen({
-    theme: 'default',
+    theme: 'salted',
     product: {
       name: 'ShoesHub',
       link: 'https://youtube.com',
