@@ -72,7 +72,42 @@ const userLoginValidator = () => {
   ];
 };
 
+const userForgotPasswordValidator = () => {
+  return [
+    body('email')
+      .trim()
+      .notEmpty()
+      .withMessage('Email is required')
+      .isEmail()
+      .withMessage('Email is invalid'),
+  ];
+};
+
+const userResetForgottenPasswordValidator = () => {
+  return [
+    body('newPassword')
+      .trim()
+      .notEmpty()
+      .withMessage('Password is required')
+      .isLength({ min: 6 })
+      .withMessage('Password must be at lease 6 characters long'),
+    body('confirmPassword')
+      .trim()
+      .notEmpty()
+      .withMessage('confirm Password is required')
+      .custom((value, { req }) => {
+        // Check if the confirm password matches the new password
+        if (value !== req.body.newPassword) {
+          throw new Error(`Confirm password doesn't match`);
+        }
+        return true;
+      }),
+  ];
+};
+
 module.exports = {
   userRegisterValidator,
   userLoginValidator,
+  userForgotPasswordValidator,
+  userResetForgottenPasswordValidator,
 };
