@@ -2,6 +2,7 @@ const { Router } = require('express');
 const {
   userRegister,
   userLogin,
+  verifyEmail,
 } = require('../../controllers/auth/user.controllers.js');
 const {
   userRegisterValidator,
@@ -14,5 +15,6 @@ const router = Router();
 //unsecured routes
 router.route('/register').post(userRegisterValidator(), validate, userRegister);
 router.route('/login').post(userLoginValidator(), validate, userLogin);
+router.route('/verify-email/:verificationToken').get(verifyEmail);
 
 module.exports = router;

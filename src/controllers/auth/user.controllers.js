@@ -3,6 +3,7 @@ const {
   emailVerificationMailgenContent,
   sendEmail,
 } = require('../../utils/mail.js');
+const crypto = require('crypto');
 
 const { UserLoginType } = require('../../constants.js');
 const { ApiError } = require('../../utils/apiError.js');
@@ -144,7 +145,45 @@ const userLogin = asyncHandler(async (req, res) => {
       )
     );
 });
+
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { verificationToken } = req.params;
+  console.log('hello world');
+
+  if (!verificationToken) {
+    throw new ApiError(400, 'Email verification token is missing');
+  }
+
+  // generate a hash from the token that we are receiving
+  let hashedToken = crypto
+    .createHash('sha256')
+    .update(verificationToken)
+    .digest('hex');
+
+  const user = await User.findOne({
+    emailVerificationToken: hashedToken,
+    emailVerificationExpiry: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    throw new ApiError(489, 'Token is invalid or expired');
+  }
+
+  // If we found the user that means the token is valid
+  // Now we can remove the associated email token and expiry date as we no  longer need them
+  user.emailVerificationToken = undefined;
+  user.emailVerificationExpiry = undefined;
+  // Tun the email verified flag to `true`
+  user.isEmailVerified = true;
+  await user.save({ validateBeforeSave: false });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { isEmailVerified: true }, 'Email is verified'));
+});
+
 module.exports = {
   userRegister,
   userLogin,
+  verifyEmail,
 };
