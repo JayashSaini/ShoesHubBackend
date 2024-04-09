@@ -4,9 +4,13 @@ const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const morganMiddleware = require('./logger/morgan.logger.js');
+const { errorHandler } = require('./middlewares/error.middleware.js');
 const app = express();
 
 function startApp() {
+  // App Routers
+  const userRouter = require('./routes/auth/user.routes.js');
+
   app.use(
     cors({
       origin: process.env.CORS_ORIGIN || '*',
@@ -25,6 +29,9 @@ function startApp() {
   // Log requests with Morgan middleware (use 'combined' format for production)
   app.use(morgan('dev'));
   app.use(morganMiddleware);
+
+  // App Api
+  app.use('/api/v1/users', userRouter);
 
   app.use(errorHandler);
 }
