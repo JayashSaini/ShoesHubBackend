@@ -6,6 +6,7 @@ const {
   refreshAccessToken,
   forgotPasswordRequest,
   resetForgottenPassword,
+  userLogout,
 } = require('../../controllers/auth/user.controllers.js');
 const {
   userRegisterValidator,
@@ -14,6 +15,7 @@ const {
   userResetForgottenPasswordValidator,
 } = require('../../validators/auth/user.validators.js');
 const validate = require('../../validators/validate.js');
+const { verifyJwt } = require('../../middlewares/auth.middleware.js');
 
 const router = Router();
 
@@ -33,5 +35,8 @@ router
     validate,
     resetForgottenPassword
   );
+
+// Secured Routes
+router.route('/logout').get(verifyJwt, userLogout);
 
 module.exports = router;
