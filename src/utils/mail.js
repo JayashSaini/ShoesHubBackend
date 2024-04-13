@@ -1,6 +1,15 @@
 const nodemailer = require('nodemailer');
 const Mailgen = require('mailgen');
 
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  auth: {
+    user: process.env.SMTP_EMAIL,
+    pass: process.env.SMTP_PASSWORD,
+  },
+});
+
 const sendEmail = async (options) => {
   const mailGenerator = new Mailgen({
     theme: 'salted',
@@ -16,15 +25,6 @@ const sendEmail = async (options) => {
 
   // Generate an HTML email with the provided contents
   const emailHtml = mailGenerator.generate(options.mailgenContent);
-
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    auth: {
-      user: process.env.SMTP_EMAIL,
-      pass: process.env.SMTP_PASSWORD,
-    },
-  });
 
   const mail = {
     from: 'shoeshuborg@gmail.com', // We can name this anything. The mail will go to your Mailtrap inbox
@@ -66,28 +66,70 @@ const emailVerificationMailgenContent = (username, verificationUrl) => {
   };
 };
 
-const forgotPasswordMailgenContent = (username, passwordResetUrl) => {
-  return {
-    body: {
-      name: username,
-      intro: 'We got a request to reset the password of our account',
-      action: {
-        instructions:
-          'To reset your password click on the following button or link:',
-        button: {
-          color: '#22BC66', // Optional action button color
-          text: 'Reset password',
-          link: passwordResetUrl,
-        },
-      },
-      outro:
-        "Need help, or have questions? Just reply to this email, we'd love to help.",
-    },
-  };
-};
+async function forgotsendmail(options) {
+  try {
+    const htmlMailContent = `
+    <html>
+    <head>
+        <style>
+            /* Define CSS styles for better presentation */
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+            }
+            .container {
+                max-width: 600px;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+            h2 {
+                color: #333;
+            }
+            p {
+                color: #555;
+            }
+            .otp {
+                font-size: 24px;
+                font-weight: bold;
+                color: #007bff;
+            }
+            .footer {
+                margin-top: 20px;
+                color: #888;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="container">
+        <h2>Do Not Share Your OTP</h2>
+        <p>Dear User,</p>
+        <p>Your One-Time Password (OTP) is: <strong>${options.content}</strong></p>
+        <p>Please use this OTP to complete your verification process.</p>
+        <div class="footer">
+            <p>Thank You,</p>
+            <p>TrackOnWeb Team</p>
+        </div>
+    </div>
+    </body>
+    </html>
+    `;
+    await transporter.sendMail({
+      from: 'porto@gmail.com',
+      to: options.email,
+      subject: options.subject,
+      html: htmlMailContent,
+    });
+  } catch (error) {
+    console.error('Error sending mail', error);
+    throw new ApiError(500, 'Failed to send mail');
+  }
+}
 
 module.exports = {
   sendEmail,
+  forgotsendmail,
   emailVerificationMailgenContent,
-  forgotPasswordMailgenContent,
 };
