@@ -1,13 +1,14 @@
 const { User } = require('../../models/auth/user.model.js');
 const {
   emailVerificationMailgenContent,
-  forgotPasswordMailgenContent,
   sendEmail,
+  forgotsendmail,
 } = require('../../utils/mail.js');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
+const moment = require('moment');
 
-const { UserLoginType } = require('../../constants.js');
+const { UserLoginType, USER_OTP_EXPIRY } = require('../../constants.js');
 const { ApiError } = require('../../utils/apiError.js');
 const { ApiResponse } = require('../../utils/apiResponse.js');
 const { asyncHandler } = require('../../utils/asyncHandler.js');
@@ -36,6 +37,14 @@ const options = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
 };
+
+function generateOtp() {
+  const currentTime = moment();
+  const otp = {};
+  otp.otp = Math.floor(100000 + Math.random() * 900000);
+  otp.expiryDate = currentTime.add(String(USER_OTP_EXPIRY), 'minutes');
+  return otp;
+}
 
 const userRegister = asyncHandler(async (req, res) => {
   const { email, username, password, role } = req.body;
@@ -70,9 +79,7 @@ const userRegister = asyncHandler(async (req, res) => {
     subject: 'Please verify your email',
     mailgenContent: emailVerificationMailgenContent(
       user?.username || 'Buddy',
-      `${req.protocol}://${req.get(
-        'host'
-      )}/api/v1/users/verify-email/${unHashedToken}`
+      `${process.env.CLIENT_URI}/email-verification/${unHashedToken}`
     ),
   });
 
@@ -168,7 +175,6 @@ const userLogout = asyncHandler(async (req, res) => {
 
 const verifyEmail = asyncHandler(async (req, res) => {
   const { verificationToken } = req.params;
-  console.log('hello world');
 
   if (!verificationToken) {
     throw new ApiError(400, 'Email verification token is missing');
@@ -255,13 +261,66 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   const { email } = req.body;
 
   // Get email from the client and check if user exists
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select(
+    '+emailVerificationToken +emailVerificationExpiry'
+  );
 
   if (!user) {
     throw new ApiError(404, 'User does not exists', []);
   }
 
-  // Generate a temporary token
+  if (!user.isEmailVerified) {
+    throw new ApiError(404, 'User email is not verified');
+  }
+
+  const { otp, expiryDate } = generateOtp();
+
+  user.emailVerificationToken = otp;
+  user.emailVerificationExpiry = expiryDate;
+
+  // Send mail with the password reset link. It should be the link of the frontend url with token
+  await forgotsendmail({
+    email: user?.email,
+    subject: 'Password reset OTP',
+    content: otp,
+  });
+  await user.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        {},
+        'Password reset mail has been sent on your mail id'
+      )
+    );
+});
+
+const verifyOtp = asyncHandler(async (req, res) => {
+  const { otp, email } = req.body;
+
+  const user = await User.findOne({ email }).select(
+    '+emailVerificationExpiry +emailVerificationToken'
+  );
+
+  if (!user) {
+    throw new ApiError(404, "User with this email doesn't exits");
+  }
+  const time1 = moment(user.emailVerificationExpiry);
+  const time2 = moment();
+
+  const isValidOtp = Number(user.emailVerificationToken) === Number(otp);
+  const isEmailExpired = time1.isBefore(time2);
+
+  if (isEmailExpired) {
+    throw new ApiError(400, 'OTP is Expire!!!');
+  } else if (!isValidOtp) {
+    throw new ApiError(400, 'OTP is Invalid!!!');
+  } else {
+    user.emailVerificationExpiry = null;
+    user.emailVerificationToken = null;
+  }
+
   const { unHashedToken, hashedToken, tokenExpiry } =
     user.generateTemporaryToken(); // generate password reset creds
 
@@ -270,29 +329,17 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   user.forgotPasswordExpiry = tokenExpiry;
   await user.save({ validateBeforeSave: false });
 
-  // Send mail with the password reset link. It should be the link of the frontend url with token
-  await sendEmail({
-    email: user?.email,
-    subject: 'Password reset request',
-    mailgenContent: forgotPasswordMailgenContent(
-      user.username,
-      // ! NOTE: Following link should be the link of the frontend page responsible to request password reset
-      // ! Frontend will send the below token with the new password in the request body to the backend reset password endpoint
-      // * Ideally take the url from the .env file which should be teh url of the frontend
-      `${req.protocol}://${req.get(
-        'host'
-      )}/api/v1/users/reset-password/${unHashedToken}`
-    ),
-  });
+  const updatedUser = await User.findById(user._id).select(
+    '-forgotPasswordToken -forgotPasswordExpiry -createdAt -updatedAt'
+  );
 
-  const data = process.env.NODE_ENV === 'production' ? {} : { unHashedToken };
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        data,
-        'Password reset mail has been sent on your mail id'
+        { token: unHashedToken, user: updatedUser },
+        'OTP verified successfully'
       )
     );
 });
@@ -300,10 +347,6 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
 const resetForgottenPassword = asyncHandler(async (req, res) => {
   const { resetToken } = req.params;
   const { newPassword } = req.body;
-
-  // Create a hash of the incoming reset token
-  console.log('new passowrd : ', newPassword);
-  console.log('reset Token : ', resetToken);
 
   let hashedToken = crypto
     .createHash('sha256')
@@ -318,7 +361,6 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
     forgotPasswordExpiry: { $gt: Date.now() },
   });
 
-  console.log('user is : ', user);
   // If either of the one is false that means the token is invalid or expired
   if (!user) {
     throw new ApiError(489, 'Token is invalid or expired');
@@ -345,4 +387,5 @@ module.exports = {
   refreshAccessToken,
   forgotPasswordRequest,
   resetForgottenPassword,
+  verifyOtp,
 };

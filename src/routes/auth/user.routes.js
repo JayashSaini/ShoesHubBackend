@@ -7,12 +7,14 @@ const {
   forgotPasswordRequest,
   resetForgottenPassword,
   userLogout,
+  verifyOtp,
 } = require('../../controllers/auth/user.controllers.js');
 const {
   userRegisterValidator,
   userLoginValidator,
   userForgotPasswordValidator,
   userResetForgottenPasswordValidator,
+  userVerifyOtpValidator,
 } = require('../../validators/auth/user.validators.js');
 const validate = require('../../validators/validate.js');
 const { verifyJwt } = require('../../middlewares/auth.middleware.js');
@@ -28,6 +30,9 @@ router.route('/verify-email/:verificationToken').get(verifyEmail);
 router
   .route('/forgot-password')
   .post(userForgotPasswordValidator(), validate, forgotPasswordRequest);
+
+router.route('/verify-otp').post(userVerifyOtpValidator(), validate, verifyOtp);
+
 router
   .route('/reset-password/:resetToken')
   .post(

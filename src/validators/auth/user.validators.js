@@ -93,6 +93,17 @@ const userForgotPasswordValidator = () => {
       .withMessage('Email is invalid'),
   ];
 };
+const userVerifyOtpValidator = () => {
+  return [
+    body('email')
+      .trim()
+      .notEmpty()
+      .withMessage('Email is required')
+      .isEmail()
+      .withMessage('Email is invalid'),
+    body('otp').trim().notEmpty().withMessage('OTP is required'),
+  ];
+};
 
 const userResetForgottenPasswordValidator = () => {
   return [
@@ -119,6 +130,7 @@ const userResetForgottenPasswordValidator = () => {
 module.exports = {
   userRegisterValidator,
   userLoginValidator,
-  userForgotPasswordValidator,
+  userVerifyOtpValidator,
   userResetForgottenPasswordValidator,
+  userForgotPasswordValidator,
 };

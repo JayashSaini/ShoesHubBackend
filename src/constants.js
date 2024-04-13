@@ -15,6 +15,9 @@ const UserLoginType = {
 const AvailableSocialLogins = Object.values(UserLoginType);
 
 const USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
+
+const USER_OTP_EXPIRY = 2;
+
 module.exports = {
   DB_NAME,
   UserRolesEnum,
@@ -22,4 +25,5 @@ module.exports = {
   UserLoginType,
   AvailableSocialLogins,
   USER_TEMPORARY_TOKEN_EXPIRY,
+  USER_OTP_EXPIRY,
 };
