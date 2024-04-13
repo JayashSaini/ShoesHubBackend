@@ -10,6 +10,7 @@ const app = express();
 function startApp() {
   // App Routers
   const userRouter = require('./routes/auth/user.routes.js');
+  const healthCheckRouter = require('./routes/healthcheck.routes.js');
 
   app.use(
     cors({
@@ -32,6 +33,7 @@ function startApp() {
 
   // App Api
   app.use('/api/v1/users', userRouter);
+  app.use('/api/v1/healthcheck', healthCheckRouter);
 
   app.use(errorHandler);
 }

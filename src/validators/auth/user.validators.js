@@ -48,6 +48,17 @@ const userRegisterValidator = () => {
       .withMessage('Password is required')
       .isLength({ min: 6 })
       .withMessage('Password must be at lease 6 characters long'),
+    body('confirmPassword')
+      .trim()
+      .notEmpty()
+      .withMessage('confirm Password is required')
+      .custom((value, { req }) => {
+        // Check if the confirm password matches the  password
+        if (value !== req.body.password) {
+          throw new Error(`Confirm password doesn't match`);
+        }
+        return true;
+      }),
     body('role')
       .optional()
       .isIn(AvailableUserRoles)
