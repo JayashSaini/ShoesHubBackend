@@ -61,6 +61,7 @@ const userRegister = asyncHandler(async (req, res) => {
     username,
     isEmailVerified: false,
     role: role || UserRolesEnum.USER,
+    loginType: UserLoginType.EMAIL_PASSWORD,
   });
 
   const { unHashedToken, hashedToken, tokenExpiry } =
@@ -379,6 +380,24 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, 'Password reset successfully'));
 });
 
+const handleSocialLogin = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user?._id);
+  console.log('hello world' + user);
+  if (!user) {
+    throw new ApiError(404, 'User does not exist');
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    user._id
+  );
+
+  return res
+    .status(301)
+    .cookie('accessToken', accessToken, options) // set the access token in the cookie
+    .cookie('refreshToken', refreshToken, options) // set the refresh token in the cookie
+    .redirect(`${process.env.CLIENT_SSO_REDIRECT_URL}/`);
+});
+
 module.exports = {
   userRegister,
   userLogin,
@@ -388,4 +407,5 @@ module.exports = {
   forgotPasswordRequest,
   resetForgottenPassword,
   verifyOtp,
+  handleSocialLogin,
 };

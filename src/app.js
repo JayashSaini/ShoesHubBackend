@@ -1,8 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const passport = require('passport');
 const morganMiddleware = require('./logger/morgan.logger.js');
 const { errorHandler } = require('./middlewares/error.middleware.js');
 const app = express();
@@ -23,6 +25,17 @@ function startApp() {
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   app.use(cookieParser());
+
+  // required for passport
+  app.use(
+    session({
+      secret: process.env.EXPRESS_SESSION_SECRET,
+      resave: true,
+      saveUninitialized: true,
+    })
+  ); // session secret
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   // Set security headers with Helmet middleware
   app.use(helmet());

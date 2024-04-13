@@ -10,7 +10,6 @@ const AvailableUserRoles = Object.values(UserRolesEnum);
 const UserLoginType = {
   EMAIL_PASSWORD: 'EMAIL_PASSWORD',
   GOOGLE: 'GOOGLE',
-  GITHUB: 'GITHUB',
 };
 const AvailableSocialLogins = Object.values(UserLoginType);
 

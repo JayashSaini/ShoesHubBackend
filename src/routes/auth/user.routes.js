@@ -8,6 +8,7 @@ const {
   resetForgottenPassword,
   userLogout,
   verifyOtp,
+  handleSocialLogin,
 } = require('../../controllers/auth/user.controllers.js');
 const {
   userRegisterValidator,
@@ -18,6 +19,8 @@ const {
 } = require('../../validators/auth/user.validators.js');
 const validate = require('../../validators/validate.js');
 const { verifyJwt } = require('../../middlewares/auth.middleware.js');
+require('../../passport/index.js'); // import the passport config
+const passport = require('passport');
 
 const router = Router();
 
@@ -43,5 +46,20 @@ router
 
 // Secured Routes
 router.route('/logout').get(verifyJwt, userLogout);
+
+//SSO Routes
+
+router.route('/google').get(
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+  }),
+  (req, res) => {
+    res.send('redirecting to google...');
+  }
+);
+
+router
+  .route('/google/callback')
+  .get(passport.authenticate('google'), handleSocialLogin);
 
 module.exports = router;
