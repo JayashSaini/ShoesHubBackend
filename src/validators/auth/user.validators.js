@@ -1,5 +1,5 @@
 const { body } = require('express-validator');
-// const User = require('../../models/auth/user.model.js');
+const { User } = require('../../models/auth/user.model.js');
 const { AvailableUserRoles } = require('../../constants.js');
 
 const userRegisterValidator = () => {
@@ -18,8 +18,7 @@ const userRegisterValidator = () => {
             throw new Error('Email already exists');
           }
         }
-      })
-      .withMessage('Email already exists'),
+      }),
     body('username')
       .trim()
       .notEmpty()
@@ -34,8 +33,7 @@ const userRegisterValidator = () => {
         if (exitsingUser) {
           throw new Error('Username already exists');
         }
-      })
-      .withMessage('Username already exists'),
+      }),
     body('password')
       .trim()
       .notEmpty()
