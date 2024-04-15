@@ -35,7 +35,7 @@ const userRegisterValidator = () => {
           throw new Error('Username already exists');
         }
       })
-      .withMessage('Email already exists'),
+      .withMessage('Username already exists'),
     body('password')
       .trim()
       .notEmpty()
