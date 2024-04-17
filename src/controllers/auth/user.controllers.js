@@ -392,6 +392,35 @@ const handleSocialLogin = asyncHandler(async (req, res) => {
     .redirect(`${process.env.CLIENT_SSO_REDIRECT_URL}/`);
 });
 
+const resendEmailVerification = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw new ApiError(404, "Email doesn't exits");
+  }
+  if (user.isEmailVerified) {
+    throw new ApiError(400, 'Email is already verified');
+  }
+  const { unHashedToken, hashedToken, tokenExpiry } =
+    user.generateTemporaryToken();
+
+  user.emailVerificationToken = hashedToken;
+  user.emailVerificationExpiry = tokenExpiry;
+  await user.save({ validateBeforeSave: false });
+
+  await sendEmail({
+    email: user?.email,
+    subject: 'Please verify your email',
+    mailgenContent: emailVerificationMailgenContent(
+      user?.username || 'Buddy',
+      `${process.env.CLIENT_URI}/email-verification/${unHashedToken}`
+    ),
+  });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, 'Mail has been sent to your mail ID'));
+});
+
 module.exports = {
   userRegister,
   userLogin,
@@ -402,4 +431,5 @@ module.exports = {
   resetForgottenPassword,
   verifyOtp,
   handleSocialLogin,
+  resendEmailVerification,
 };

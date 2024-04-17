@@ -9,6 +9,7 @@ const {
   userLogout,
   verifyOtp,
   handleSocialLogin,
+  resendEmailVerification,
 } = require('../../controllers/auth/user.controllers.js');
 const {
   userRegisterValidator,
@@ -29,6 +30,7 @@ router.route('/register').post(userRegisterValidator(), validate, userRegister);
 router.route('/login').post(userLoginValidator(), validate, userLogin);
 router.route('/refresh-token').post(refreshAccessToken);
 router.route('/verify-email/:verificationToken').get(verifyEmail);
+router.route('/resend-verify-email').post(resendEmailVerification);
 
 router
   .route('/forgot-password')
