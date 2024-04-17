@@ -36,6 +36,7 @@
     "moment": "^2.30.1",
     "mongoose": "^8.3.0",
     "morgan": "^1.10.0",
+    "node-cron": "^3.0.3",
     "nodemailer": "^6.9.13",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",

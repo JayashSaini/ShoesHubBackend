@@ -7,6 +7,7 @@ const morgan = require('morgan');
 const passport = require('passport');
 const morganMiddleware = require('./logger/morgan.logger.js');
 const { errorHandler } = require('./middlewares/error.middleware.js');
+const scheduleCronJob = require('./utils/cron.js');
 const app = express();
 
 function startApp() {
@@ -25,6 +26,14 @@ function startApp() {
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   app.use(cookieParser());
+  // schedule a cron job
+  (async () => {
+    try {
+      await scheduleCronJob();
+    } catch (error) {
+      console.error('Error scheduling cron jobs:', error);
+    }
+  })();
 
   // required for passport
   app.use(
