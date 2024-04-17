@@ -48,13 +48,7 @@ function generateOtp() {
 
 const userRegister = asyncHandler(async (req, res) => {
   const { email, username, password, role } = req.body;
-  const existedUser = await User.findOne({
-    $or: [{ username }, { email }],
-  });
 
-  if (existedUser) {
-    throw new ApiError(409, 'User with email or username already exists', []);
-  }
   const user = await User.create({
     email,
     password,
@@ -98,7 +92,7 @@ const userRegister = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         { user: createdUser },
-        'Users registered successfully and verification email has been sent on your email.'
+        'Users registered successfully'
       )
     );
 });

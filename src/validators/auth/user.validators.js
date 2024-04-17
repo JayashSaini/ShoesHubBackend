@@ -38,8 +38,8 @@ const userRegisterValidator = () => {
       .trim()
       .notEmpty()
       .withMessage('Password is required')
-      .isLength({ min: 6 })
-      .withMessage('Password must be at lease 6 characters long'),
+      .isLength({ min: 8 })
+      .withMessage('Password must be at lease 8 characters long'),
     body('confirmPassword')
       .trim()
       .notEmpty()
