@@ -10,6 +10,7 @@ const {
   verifyOtp,
   handleSocialLogin,
   resendEmailVerification,
+  userSelf,
 } = require('../../controllers/auth/user.controllers.js');
 const {
   userRegisterValidator,
@@ -48,6 +49,7 @@ router
 
 // Secured Routes
 router.route('/logout').get(verifyJwt, userLogout);
+router.route('/self').get(verifyJwt, userSelf);
 
 //SSO Routes
 

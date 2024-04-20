@@ -421,6 +421,12 @@ const resendEmailVerification = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, 'Mail has been sent to your mail ID'));
 });
 
+const userSelf = asyncHandler(async (req, res) => {
+  return res
+    .status(200)
+    .json(new ApiResponse(200, req.user, 'User fetched successfully'));
+});
+
 module.exports = {
   userRegister,
   userLogin,
@@ -432,4 +438,5 @@ module.exports = {
   verifyOtp,
   handleSocialLogin,
   resendEmailVerification,
+  userSelf,
 };
