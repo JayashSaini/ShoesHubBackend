@@ -389,7 +389,9 @@ const handleSocialLogin = asyncHandler(async (req, res) => {
     .status(301)
     .cookie('accessToken', accessToken, options) // set the access token in the cookie
     .cookie('refreshToken', refreshToken, options) // set the refresh token in the cookie
-    .redirect(`${process.env.CLIENT_SSO_REDIRECT_URL}/`);
+    .redirect(
+      `${process.env.CLIENT_SSO_REDIRECT_URL}/${accessToken}/${refreshToken}`
+    );
 });
 
 const resendEmailVerification = asyncHandler(async (req, res) => {
