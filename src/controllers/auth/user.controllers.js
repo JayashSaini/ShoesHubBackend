@@ -265,7 +265,8 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   if (!user.isEmailVerified) {
     throw new ApiError(404, 'User email is not verified');
   }
-  if (!user.loginType === UserLoginType.EMAIL_PASSWORD) {
+
+  if (!(user.loginType === UserLoginType.EMAIL_PASSWORD)) {
     throw new ApiError(
       400,
       'You have previously registered using ' +
@@ -384,7 +385,6 @@ const resetForgottenPassword = asyncHandler(async (req, res) => {
 
 const handleSocialLogin = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user?._id);
-  console.log('hello world' + user);
   if (!user) {
     throw new ApiError(404, 'User does not exist');
   }
