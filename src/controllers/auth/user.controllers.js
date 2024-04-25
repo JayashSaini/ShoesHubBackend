@@ -259,13 +259,21 @@ const forgotPasswordRequest = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email }).select(
     '+emailVerificationToken +emailVerificationExpiry'
   );
-
   if (!user) {
     throw new ApiError(404, 'User does not exists', []);
   }
-
   if (!user.isEmailVerified) {
     throw new ApiError(404, 'User email is not verified');
+  }
+  if (!user.loginType === UserLoginType.EMAIL_PASSWORD) {
+    throw new ApiError(
+      400,
+      'You have previously registered using ' +
+        user.loginType?.toLowerCase() +
+        '. Please use the ' +
+        user.loginType?.toLowerCase() +
+        ' login option to access your account.'
+    );
   }
 
   const { otp, expiryDate } = generateOtp();
@@ -333,7 +341,7 @@ const verifyOtp = asyncHandler(async (req, res) => {
     .json(
       new ApiResponse(
         200,
-        { token: unHashedToken, user: updatedUser },
+        { token: unHashedToken },
         'OTP verified successfully'
       )
     );
