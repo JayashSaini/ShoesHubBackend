@@ -3,7 +3,7 @@ const { asyncHandler } = require('../utils/asyncHandler.js');
 const { User } = require('../models/auth/user.model.js');
 const jwt = require('jsonwebtoken');
 
-const verifyJwt = asyncHandler(async (req, res, next) => {
+const verifyJWT = asyncHandler(async (req, res, next) => {
   const token =
     req.cookies?.accessToken ||
     req.header('Authorization')?.replace('Bearer', '');
@@ -29,6 +29,20 @@ const verifyJwt = asyncHandler(async (req, res, next) => {
   }
 });
 
+const verifyPermission = (roles = []) => {
+  return asyncHandler(async (req, res, next) => {
+    if (!req.user?._id) {
+      throw new ApiError(401, 'Unauthorized request');
+    }
+    if (roles.includes(req.user?.role)) {
+      next();
+    } else {
+      throw new ApiError(403, 'You are not allowed to perform this action');
+    }
+  });
+};
+
 module.exports = {
-  verifyJwt,
+  verifyJWT,
+  verifyPermission,
 };

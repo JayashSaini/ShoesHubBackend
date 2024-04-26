@@ -20,7 +20,7 @@ const {
   userVerifyOtpValidator,
 } = require('../../validators/auth/user.validators.js');
 const validate = require('../../validators/validate.js');
-const { verifyJwt } = require('../../middlewares/auth.middleware.js');
+const { verifyJWT } = require('../../middlewares/auth.middleware.js');
 require('../../passport/index.js'); // import the passport config
 const passport = require('passport');
 
@@ -48,8 +48,8 @@ router
   );
 
 // Secured Routes
-router.route('/logout').get(verifyJwt, userLogout);
-router.route('/self').get(verifyJwt, userSelf);
+router.route('/logout').get(verifyJWT, userLogout);
+router.route('/self').get(verifyJWT, userSelf);
 
 //SSO Routes
 
@@ -62,8 +62,27 @@ router.route('/google').get(
   }
 );
 
-router
-  .route('/google/callback')
-  .get(passport.authenticate('google'), handleSocialLogin);
+router.route('/google/callback').get(
+  (req, res, next) => {
+    // Middleware for passport authentication
+    passport.authenticate('google', (err, user, info) => {
+      // Check if there's an error or user object
+      if (err || !user) {
+        // If there's an error or user object is not found, handle the error response
+        if (info && info.redirectTo) {
+          // Redirect the user to the specified URL with the error message
+          return res.redirect(
+            info.redirectTo + '?error=' + encodeURIComponent(info.message)
+          );
+        }
+        // If no redirection specified, handle other types of errors or redirect to a default error page
+        return res.redirect('?error=' + encodeURIComponent('unhandled error'));
+      }
+      // If authentication succeeds, proceed to the next middleware
+      next();
+    })(req, res, next); // Call the middleware with req, res, next
+  },
+  handleSocialLogin // Call handleSocialLogin to handle the successful authentication
+);
 
 module.exports = router;
