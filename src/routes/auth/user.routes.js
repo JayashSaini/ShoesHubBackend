@@ -8,9 +8,9 @@ const {
   resetForgottenPassword,
   userLogout,
   verifyOtp,
-  handleSocialLogin,
   resendEmailVerification,
   userSelf,
+  generateAccessAndRefreshTokens,
 } = require('../../controllers/auth/user.controllers.js');
 const {
   userRegisterValidator,
@@ -62,27 +62,38 @@ router.route('/google').get(
   }
 );
 
-router.route('/google/callback').get(
-  (req, res, next) => {
-    // Middleware for passport authentication
-    passport.authenticate('google', (err, user, info) => {
-      // Check if there's an error or user object
-      if (err || !user) {
-        // If there's an error or user object is not found, handle the error response
-        if (info && info.redirectTo) {
-          // Redirect the user to the specified URL with the error message
-          return res.redirect(
-            info.redirectTo + '?error=' + encodeURIComponent(info.message)
-          );
-        }
-        // If no redirection specified, handle other types of errors or redirect to a default error page
-        return res.redirect('?error=' + encodeURIComponent('unhandled error'));
+router.route('/google/callback').get((req, res, next) => {
+  // Middleware for passport authentication
+  passport.authenticate('google', async (err, user, info) => {
+    // Check if there's an error or user object
+    if (err || !user) {
+      // If there's an error or user object is not found, handle the error response
+      if (info && info.redirectTo) {
+        // Redirect the user to the specified URL with the error message
+        return res.redirect(
+          info.redirectTo + '?error=' + encodeURIComponent(info.message)
+        );
       }
-      // If authentication succeeds, proceed to the next middleware
-      next();
-    })(req, res, next); // Call the middleware with req, res, next
-  },
-  handleSocialLogin // Call handleSocialLogin to handle the successful authentication
-);
+      // If no redirection specified, handle other types of errors or redirect to a default error page
+      return res.redirect('?error=' + encodeURIComponent('unhandled error'));
+    }
+    // If authentication succeeds, proceed to the next middleware
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+      user._id
+    );
+    const options = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+    };
+
+    return res
+      .status(301)
+      .cookie('accessToken', accessToken, options) // set the access token in the cookie
+      .cookie('refreshToken', refreshToken, options) // set the refresh token in the cookie
+      .redirect(
+        `${process.env.CLIENT_SSO_REDIRECT_URL}/${accessToken}/${refreshToken}`
+      );
+  })(req, res, next); // Call the middleware with req, res, next
+});
 
 module.exports = router;
