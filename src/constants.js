@@ -3,7 +3,6 @@ const DB_NAME = 'ShoesHub';
 const UserRolesEnum = {
   ADMIN: 'ADMIN',
   USER: 'USER',
-  SELLER: 'SELLER',
 };
 const AvailableUserRoles = Object.values(UserRolesEnum);
 

@@ -1,19 +1,59 @@
-const fs = require("fs");
+const fs = require('fs');
 
-function getLocalPath(fileName) {
+const getMongoosePaginationOptions = ({
+  page = 1,
+  limit = 10,
+  customLabels,
+}) => {
+  return {
+    page: Math.max(page, 1),
+    limit: Math.max(limit, 1),
+    pagination: true,
+    customLabels: {
+      pagingCounter: 'serialNumberStartFrom',
+      ...customLabels,
+    },
+  };
+};
+
+const getLocalPath = (fileName) => {
   return `public/images/${fileName}`;
-}
+};
 
-function removeLocalFile(localPath, isLocalPath = true) {
-  if (typeof localPath === "string") {
-    if (isLocalPath) {
-      localPath = getLocalPath(localPath);
+const removeLocalFile = (localPath) => {
+  fs.unlink(localPath, (err) => {
+    if (err) console.log('Error while removing local files: ', err);
+  });
+};
+
+const removeUnusedMulterImageFilesOnError = (req) => {
+  try {
+    const multerFile = req.file;
+    const multerFiles = req.files;
+
+    if (multerFile) {
+      // If there is file uploaded and there is validation error
+      // We want to remove that file
+      removeLocalFile(multerFile.path);
     }
 
-    fs.unlinkSync(localPath, (err) => {
-      if (err) console.log("Error while removing local files: ", err);
-    });
+    if (multerFiles) {
+      const filesValueArray = Object.values(multerFiles);
+      filesValueArray.map((fileFields) => {
+        fileFields.map((fileObject) => {
+          removeLocalFile(fileObject.path);
+        });
+      });
+    }
+  } catch (error) {
+    // fail silently
+    console.log('Error while removing image files: ', error);
   }
-}
+};
 
-module.exports = { getLocalPath, removeLocalFile };
+module.exports = {
+  getMongoosePaginationOptions,
+  removeLocalFile,
+  removeUnusedMulterImageFilesOnError,
+  getLocalPath,
+};

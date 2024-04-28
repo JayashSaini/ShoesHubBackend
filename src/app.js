@@ -14,6 +14,7 @@ function startApp() {
   // App Routers
   const userRouter = require('./routes/auth/user.routes.js');
   const healthCheckRouter = require('./routes/healthcheck.routes.js');
+  const productRouter = require('./routes/product.routes.js');
 
   app.use(
     cors({
@@ -24,8 +25,8 @@ function startApp() {
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
   app.use(cookieParser());
+
   // schedule a cron job
   (async () => {
     try {
@@ -42,7 +43,9 @@ function startApp() {
       resave: true,
       saveUninitialized: true,
     })
-  ); // session secret
+  );
+
+  // session secret
   app.use(passport.initialize());
   app.use(passport.session());
 
@@ -53,10 +56,12 @@ function startApp() {
   app.use(morgan('dev'));
   app.use(morganMiddleware);
 
-  // App Api
+  // // App Api
   app.use('/api/v1/users', userRouter);
   app.use('/api/v1/healthcheck', healthCheckRouter);
+  app.use('/api/v1/product', productRouter);
 
+  // Error handler
   app.use(errorHandler);
 }
 
