@@ -418,6 +418,28 @@ const userSelf = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, 'User fetched successfully'));
 });
 
+const handleSocialLogin = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user?._id);
+
+  if (!user) {
+    throw new ApiError(404, "User does not exist");
+  }
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    user._id
+  );
+
+  return res
+    .status(301)
+    .cookie("accessToken", accessToken, options) // set the access token in the cookie
+    .cookie("refreshToken", refreshToken, options) // set the refresh token in the cookie
+    .redirect(
+      // redirect user to the frontend with access and refresh token in case user is not using cookies
+      `${process.env.CLIENT_SSO_REDIRECT_URL}/${accessToken}/${refreshToken}`
+    );
+});
+
+
 module.exports = {
   userRegister,
   userLogin,
@@ -430,4 +452,5 @@ module.exports = {
   resendEmailVerification,
   userSelf,
   generateAccessAndRefreshTokens,
+  handleSocialLogin
 };
