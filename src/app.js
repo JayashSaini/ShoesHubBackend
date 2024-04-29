@@ -15,6 +15,7 @@ function startApp() {
   const userRouter = require('./routes/auth/user.routes.js');
   const healthCheckRouter = require('./routes/healthcheck.routes.js');
   const productRouter = require('./routes/product.routes.js');
+  const categoryRouter = require('./routes/category.routes.js');
 
   app.use(
     cors({
@@ -60,6 +61,7 @@ function startApp() {
   app.use('/api/v1/users', userRouter);
   app.use('/api/v1/healthcheck', healthCheckRouter);
   app.use('/api/v1/product', productRouter);
+  app.use('/api/v1/category', categoryRouter);
 
   // Error handler
   app.use(errorHandler);

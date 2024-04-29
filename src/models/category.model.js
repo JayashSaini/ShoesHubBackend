@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const mongooseAggregatePaginate = require("mongoose-aggregate-paginate-v2");
+const mongoose = require('mongoose');
+const mongooseAggregatePaginate = require('mongoose-aggregate-paginate-v2');
 
 const categorySchema = new mongoose.Schema(
   {
@@ -9,7 +9,15 @@ const categorySchema = new mongoose.Schema(
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: 'User',
+    },
+    parentCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+    },
+    childCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
     },
   },
   { timestamps: true }
@@ -17,5 +25,5 @@ const categorySchema = new mongoose.Schema(
 
 categorySchema.plugin(mongooseAggregatePaginate);
 
-const Category = mongoose.model("Category", categorySchema);
+const Category = mongoose.model('Category', categorySchema);
 module.exports = { Category };

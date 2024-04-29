@@ -51,9 +51,15 @@ const removeUnusedMulterImageFilesOnError = (req) => {
   }
 };
 
+const capitalize = (str) => {
+  if (!str) return undefined;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+};
+
 module.exports = {
   getMongoosePaginationOptions,
   removeLocalFile,
   removeUnusedMulterImageFilesOnError,
   getLocalPath,
+  capitalize,
 };

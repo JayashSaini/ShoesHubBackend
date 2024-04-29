@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const { ApiError } = require('../utils/apiError.js');
 
-module.exports = function validate(req, res, next) {
+const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) {
     return next();
@@ -12,3 +12,4 @@ module.exports = function validate(req, res, next) {
   // 422: Unprocessable Entity
   throw new ApiError(422, 'Received data is not valid', extractedErrors);
 };
+module.exports = { validate };
