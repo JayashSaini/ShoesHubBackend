@@ -1,5 +1,5 @@
 const { v2 } = require('cloudinary');
-const { removeLocalFile } = require('../utils/helper');
+const { removeLocalFile } = require('../utils/helper.js');
 
 if (
   !process.env.CLOUDINARY_CLOUD_NAME ||
@@ -22,11 +22,11 @@ async function uploadOnCloudinary(localPath) {
     if (!localPath) return null;
     const response = await v2.uploader.upload(localPath);
 
-    removeLocalFile(localPath, false);
+    removeLocalFile(localPath);
     return response;
   } catch (error) {
     console.error('Error uploading to Cloudinary:', error);
-    removeLocalFile(localPath, false);
+    removeLocalFile(localPath);
     return null;
   }
 }
@@ -36,7 +36,7 @@ const deleteImageOnCloudinary = async (publicId) => {
     if (!publicId) {
       return null;
     }
-    let response = await cloudinary.v2.uploader.destroy(publicId, {
+    let response = await v2.uploader.destroy(publicId, {
       resource_type: 'image',
     });
     return response;

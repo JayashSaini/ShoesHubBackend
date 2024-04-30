@@ -4,7 +4,7 @@ const { Product } = require('../models/product.model.js');
 const { Category } = require('../models/category.model.js');
 const {
   uploadOnCloudinary,
-  deleteImageonCloudinary,
+  deleteImageOnCloudinary,
 } = require('../utils/cloudinary.js');
 const { getMongoosePaginationOptions } = require('../utils/helper.js');
 const { MAXIMUM_SUB_IMAGE_COUNT } = require('../constants.js');
@@ -33,7 +33,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
 });
 
 const createProduct = asyncHandler(async (req, res) => {
-  const { name, description, category, price, stock } = req.body;
+  const { name, description, category, price, stock, color, size } = req.body;
 
   const categoryToBeAdded = await Category.findById(category);
 
@@ -71,6 +71,8 @@ const createProduct = asyncHandler(async (req, res) => {
       url: mainImage.url,
       public_id: mainImage.public_id,
     },
+    color,
+    size,
     subImages,
     category,
   });
@@ -81,7 +83,7 @@ const createProduct = asyncHandler(async (req, res) => {
 
 const updateProduct = asyncHandler(async (req, res) => {
   const { productId } = req.params;
-  const { name, description, category, price, stock } = req.body;
+  const { name, description, category, price, stock, color, size } = req.body;
 
   const product = await Product.findById(productId);
 
@@ -114,11 +116,11 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   if (totalSubImages > MAXIMUM_SUB_IMAGE_COUNT) {
     subImages.forEach(async (image) => {
-      await deleteImageonCloudinary(image.public_id);
+      await deleteImageOnCloudinary(image.public_id);
     });
     if (product.mainImage.url !== mainImage.url) {
       // If use has uploaded new main image remove the newly uploaded main image as there is no updation happening
-      await deleteImageonCloudinary(mainImage.public_id);
+      await deleteImageOnCloudinary(mainImage.public_id);
     }
     throw new ApiError(
       400,
@@ -141,6 +143,8 @@ const updateProduct = asyncHandler(async (req, res) => {
         description,
         stock,
         price,
+        color,
+        size,
         category,
         mainImage,
         subImages,
@@ -155,7 +159,7 @@ const updateProduct = asyncHandler(async (req, res) => {
   // Once the product is updated. Do some cleanup
   if (product.mainImage.url !== mainImage.url) {
     // If user is uploading new main image remove the previous one because we don't need that anymore
-    await deleteImageonCloudinary(product.mainImage.public_id);
+    await deleteImageOnCloudinary(product.mainImage.public_id);
   }
 
   return res
@@ -247,7 +251,7 @@ const removeProductSubImage = asyncHandler(async (req, res) => {
   });
 
   if (removedSubImage) {
-    await deleteImageonCloudinary(removedSubImage.public_id);
+    await deleteImageOnCloudinary(removedSubImage.public_id);
   }
 
   return res
@@ -269,9 +273,8 @@ const deleteProduct = asyncHandler(async (req, res) => {
   }
 
   const productImages = [product.mainImage, ...product.subImages];
-
   productImages.forEach(async (image) => {
-    await deleteImageonCloudinary(image.public_id);
+    await deleteImageOnCloudinary(image.public_id);
   });
 
   return res

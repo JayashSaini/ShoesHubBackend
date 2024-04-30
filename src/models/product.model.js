@@ -24,7 +24,7 @@ const productSchema = new mongoose.Schema(
       required: true,
     },
     size: {
-      type: Array[Number],
+      type: [Number], // define a Array of numbers
       required: true,
     },
     name: {

@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const { ApiError } = require('../utils/apiError.js');
 const logger = require('../logger/winston.logger.js');
+const { removeUnusedMulterImageFilesOnError } = require('../utils/helper.js');
 
 const errorHandler = function (err, req, res, _) {
   let error = err;
@@ -21,6 +22,7 @@ const errorHandler = function (err, req, res, _) {
     ...(process.env.NODE_ENV === 'production' ? {} : { stack: error.stack }),
   };
 
+  removeUnusedMulterImageFilesOnError(req);
   logger.error(`${error.message}`);
 
   // Send error response

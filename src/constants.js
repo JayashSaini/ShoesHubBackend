@@ -16,6 +16,8 @@ const USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
 
 const USER_OTP_EXPIRY = 2;
 
+const MAXIMUM_SUB_IMAGE_COUNT = 4;
+
 module.exports = {
   DB_NAME,
   UserRolesEnum,
@@ -24,4 +26,5 @@ module.exports = {
   AvailableSocialLogins,
   USER_TEMPORARY_TOKEN_EXPIRY,
   USER_OTP_EXPIRY,
+  MAXIMUM_SUB_IMAGE_COUNT,
 };

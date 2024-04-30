@@ -12,10 +12,7 @@ const {
   updateProductValidator,
 } = require('../validators/product.validators.js');
 const { upload } = require('../middlewares/multer.middleware.js');
-const validate = require('../validators/validate.js');
-const {
-  compressImages,
-} = require('../middlewares/image-compress.middleware.js');
+const { validate } = require('../validators/validate.js');
 const {
   mongoIdPathVariableValidator,
 } = require('../validators/mongodb.validators.js');
@@ -48,7 +45,6 @@ router
     ]),
     createProductValidator(),
     validate,
-    compressImages,
     createProduct
   );
 
