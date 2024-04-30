@@ -10,6 +10,14 @@ const UserLoginType = {
   EMAIL_PASSWORD: 'EMAIL_PASSWORD',
   GOOGLE: 'GOOGLE',
 };
+
+const CouponTypeEnum = {
+  FLAT: 'FLAT',
+  // PERCENTAGE: "PERCENTAGE",
+};
+
+const AvailableCouponTypes = Object.values(CouponTypeEnum);
+
 const AvailableSocialLogins = Object.values(UserLoginType);
 
 const USER_TEMPORARY_TOKEN_EXPIRY = 20 * 60 * 1000; // 20 minutes
@@ -27,4 +35,6 @@ module.exports = {
   USER_TEMPORARY_TOKEN_EXPIRY,
   USER_OTP_EXPIRY,
   MAXIMUM_SUB_IMAGE_COUNT,
+  CouponTypeEnum,
+  AvailableCouponTypes,
 };
