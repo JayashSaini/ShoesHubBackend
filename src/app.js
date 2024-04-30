@@ -18,6 +18,7 @@ function startApp() {
   const categoryRouter = require('./routes/category.routes.js');
   const profileRouter = require('./routes/profile.routes.js');
   const addressRouter = require('./routes/address.routes.js');
+  const cartRouter = require('./routes/cart.routes.js');
 
   app.use(
     cors({
@@ -66,6 +67,7 @@ function startApp() {
   app.use('/api/v1/category', categoryRouter);
   app.use('/api/v1/profile', profileRouter);
   app.use('/api/v1/address', addressRouter);
+  app.use('/api/v1/cart', cartRouter);
 
   // Error handler
   app.use(errorHandler);
