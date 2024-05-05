@@ -20,6 +20,7 @@ function startApp() {
   const addressRouter = require('./routes/address.routes.js');
   const cartRouter = require('./routes/cart.routes.js');
   const couponRouter = require('./routes/coupon.routes.js');
+  const subscriptionRouter = require('./routes/subscription.routes.js');
 
   app.use(
     cors({
@@ -70,6 +71,7 @@ function startApp() {
   app.use('/api/v1/address', addressRouter);
   app.use('/api/v1/cart', cartRouter);
   app.use('/api/v1/coupon', couponRouter);
+  app.use('/api/v1/subscribe', subscriptionRouter);
 
   // Error handler
   app.use(errorHandler);

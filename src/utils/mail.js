@@ -117,7 +117,70 @@ async function forgotsendmail(options) {
     </html>
     `;
     await transporter.sendMail({
-      from: 'porto@gmail.com',
+      from: 'jayashysaini7361@gmail.com',
+      to: options.email,
+      subject: options.subject,
+      html: htmlMailContent,
+    });
+  } catch (error) {
+    console.error('Error sending mail', error);
+    throw new ApiError(500, 'Failed to send mail');
+  }
+}
+
+async function subscriptionSendmail(options) {
+  try {
+    const htmlMailContent = `
+    <html>
+    <head>
+        <style>
+            /* Define CSS styles for better presentation */
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+            }
+            .container {
+                max-width: 600px;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+            h2 {
+                color: #333;
+            }
+            p {
+                color: #555;
+            }
+            .otp {
+              font-size: 16px;
+              font-weight: bold;
+              color: #007bff;
+          }
+            .footer {
+                margin-top: 20px;
+                color: #888;
+            }
+        </style>
+    </head>
+    <body>
+    <div class="container">
+    <h2>Congratulations for Subscribing to Shoes Hub!</h2>
+    <p>Dear User,</p>
+    <p>Thank you for subscribing to Shoes Hub! Here is your coupon code:
+    <strong class="otp">${options.content}</strong> </p>
+    <p>Please use this coupon code to get 10% OFF your next purchase.</p>
+    <div class="footer">
+        <p>Thank You,</p>
+        <p>Shoes Hub Team</p>
+    </div>
+</div>
+    </body>
+    </html>
+    `;
+    await transporter.sendMail({
+      from: 'jayashysaini7361@gmail.com',
       to: options.email,
       subject: options.subject,
       html: htmlMailContent,
@@ -132,4 +195,5 @@ module.exports = {
   sendEmail,
   forgotsendmail,
   emailVerificationMailgenContent,
+  subscriptionSendmail,
 };
