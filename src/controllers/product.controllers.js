@@ -313,7 +313,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
 const getProductsByParentCategoryId = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
-  const { limit = 10, page = 1 } = req.query;
+  let { limit = 10, page = 1 } = req.query;
   limit = parseInt(limit);
   page = parseInt(page);
 
