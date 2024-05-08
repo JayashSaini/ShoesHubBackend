@@ -13,7 +13,20 @@ const { asyncHandler } = require('../utils/asyncHandler.js');
 
 const getAllProducts = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10 } = req.query;
-  const productAggregate = Product.aggregate([{ $match: {} }]);
+
+  const productAggregate = Product.aggregate([
+    { $match: {} },
+    {
+      $addFields: {
+        randomOrder: { $rand: {} },
+      },
+    },
+    {
+      $sort: {
+        randomOrder: 1,
+      },
+    },
+  ]);
 
   const products = await Product.aggregatePaginate(
     productAggregate,
@@ -197,6 +210,16 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
         category: new mongoose.Types.ObjectId(categoryId),
       },
     },
+    {
+      $addFields: {
+        randomOrder: { $rand: {} },
+      },
+    },
+    {
+      $sort: {
+        randomOrder: 1,
+      },
+    },
   ]);
 
   const products = await Product.aggregatePaginate(
@@ -288,6 +311,67 @@ const deleteProduct = asyncHandler(async (req, res) => {
     );
 });
 
+const getProductsByParentCategoryId = asyncHandler(async (req, res) => {
+  const { categoryId } = req.params;
+  const { limit = 10, page = 1 } = req.query;
+
+  const skip = (page - 1) * limit;
+
+  const productAggregate = [
+    {
+      $match: {
+        parentCategory: new mongoose.Types.ObjectId(categoryId),
+      },
+    },
+    {
+      $lookup: {
+        from: 'products',
+        localField: '_id',
+        foreignField: 'category',
+        as: 'ProductCategory',
+      },
+    },
+    {
+      $unwind: '$ProductCategory',
+    },
+    {
+      $group: {
+        _id: '$_id',
+        categoryName: { $first: '$name' },
+        mergedProductCategory: { $push: '$ProductCategory' },
+      },
+    },
+    {
+      $unwind: '$mergedProductCategory',
+    },
+    {
+      $replaceRoot: { newRoot: '$mergedProductCategory' },
+    },
+    {
+      $addFields: {
+        randomOrder: { $rand: {} },
+      },
+    },
+    {
+      $sort: {
+        randomOrder: 1,
+      },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+  ];
+
+  const products = await Category.aggregate(productAggregate);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, products, 'Products fetched successfully'));
+});
+
 module.exports = {
   getAllProducts,
   createProduct,
@@ -296,4 +380,5 @@ module.exports = {
   deleteProduct,
   removeProductSubImage,
   getProductsByCategory,
+  getProductsByParentCategoryId,
 };

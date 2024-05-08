@@ -24,6 +24,7 @@ const {
   deleteProduct,
   getProductsByCategory,
   removeProductSubImage,
+  getProductsByParentCategoryId,
 } = require('../controllers/product.controllers.js');
 
 router
@@ -83,6 +84,14 @@ router
     mongoIdPathVariableValidator('categoryId'),
     validate,
     getProductsByCategory
+  );
+
+router
+  .route('/pcategory/:categoryId')
+  .get(
+    mongoIdPathVariableValidator('categoryId'),
+    validate,
+    getProductsByParentCategoryId
   );
 
 router
