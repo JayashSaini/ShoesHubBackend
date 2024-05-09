@@ -120,6 +120,12 @@ const addItemOrUpdateItemQuantity = asyncHandler(async (req, res) => {
     owner: req.user._id,
   });
 
+  for (let i = 0; i < cart.items.length; i++) {
+    if (cart.items[i].productId.toString() === productId) {
+      throw new ApiError(400, `Product already exists`);
+    }
+  }
+
   // See if product that user is adding exist in the db
   const product = await Product.findById(productId);
 
