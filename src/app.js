@@ -21,6 +21,7 @@ function startApp() {
   const cartRouter = require('./routes/cart.routes.js');
   const couponRouter = require('./routes/coupon.routes.js');
   const subscriptionRouter = require('./routes/subscription.routes.js');
+  const wishlistRouter = require('./routes/wishlist.routes.js');
 
   app.use(
     cors({
@@ -72,6 +73,7 @@ function startApp() {
   app.use('/api/v1/cart', cartRouter);
   app.use('/api/v1/coupon', couponRouter);
   app.use('/api/v1/subscribe', subscriptionRouter);
+  app.use('/api/v1/wishlist', wishlistRouter);
 
   // Error handler
   app.use(errorHandler);
