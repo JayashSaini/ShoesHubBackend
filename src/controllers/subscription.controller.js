@@ -27,7 +27,7 @@ const createSubscription = asyncHandler(async (req, res) => {
   await subscriptionSendmail({
     email: email,
     subject: 'ShoesHub Subscription',
-    content: 'SHOESHUB10OFF',
+    content: 'SHOESHUB500OFF',
   });
 
   const newSubscription = await Subscription.create({
@@ -43,7 +43,7 @@ const createSubscription = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         null,
-        'Check your email for getting 10% OFF Coupon Code'
+        'Check your email for getting Rs.500 FLAT OFF Coupon Code'
       )
     );
 });

@@ -170,7 +170,7 @@ async function subscriptionSendmail(options) {
     <p>Dear User,</p>
     <p>Thank you for subscribing to Shoes Hub! Here is your coupon code:
     <strong class="otp">${options.content}</strong> </p>
-    <p>Please use this coupon code to get 10% OFF your next purchase.</p>
+    <p>Please use this coupon code to get Rs.500 FLAT OFF your next purchase.</p>
     <div class="footer">
         <p>Thank You,</p>
         <p>Shoes Hub Team</p>
