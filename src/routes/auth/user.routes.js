@@ -11,6 +11,7 @@ const {
   resendEmailVerification,
   userSelf,
   generateAccessAndRefreshTokens,
+  updateAvatar,
 } = require('../../controllers/auth/user.controllers.js');
 const {
   userRegisterValidator,
@@ -23,6 +24,7 @@ const { validate } = require('../../validators/validate.js');
 const { verifyJWT } = require('../../middlewares/auth.middleware.js');
 require('../../passport/index.js'); // import the passport config
 const passport = require('passport');
+const { upload } = require('../../middlewares/multer.middleware.js');
 
 const router = Router();
 
@@ -50,6 +52,9 @@ router
 // Secured Routes
 router.route('/logout').get(verifyJWT, userLogout);
 router.route('/self').get(verifyJWT, userSelf);
+router
+  .route('/update-avatar')
+  .patch(verifyJWT, upload.single('avatar'), updateAvatar);
 
 //SSO Routes
 

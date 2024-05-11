@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
         localPath: String,
       },
       default: {
-        url: `https://via.placeholder.com/200x200.png`,
+        url: `https://res.cloudinary.com/dcvb5vgyf/image/upload/c_scale,h_500,w_500/oysy3d5lzxjzjp8am3bi.jpg`,
         localPath: '',
       },
     },

@@ -12,6 +12,7 @@ const { UserLoginType, USER_OTP_EXPIRY } = require('../../constants.js');
 const { ApiError } = require('../../utils/apiError.js');
 const { ApiResponse } = require('../../utils/apiResponse.js');
 const { asyncHandler } = require('../../utils/asyncHandler.js');
+const { uploadOnCloudinary } = require('../../utils/cloudinary.js');
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -418,6 +419,20 @@ const userSelf = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, req.user, 'User fetched successfully'));
 });
 
+const updateAvatar = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    throw new ApiError(404, 'User not found');
+  }
+  const localFIlePath = req.file.path;
+  const avatar = await uploadOnCloudinary(localFIlePath);
+  user.avatar.url = avatar.url;
+  await user.save({ validateBeforeSave: false });
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, 'Avatar updated successfully!'));
+});
+
 module.exports = {
   userRegister,
   userLogin,
@@ -430,4 +445,5 @@ module.exports = {
   resendEmailVerification,
   userSelf,
   generateAccessAndRefreshTokens,
+  updateAvatar,
 };
