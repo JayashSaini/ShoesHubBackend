@@ -1,37 +1,5 @@
 const { EcommProfile } = require('../models/profile.model.js');
-const { ApiError } = require('../utils/apiError.js');
 const { ApiResponse } = require('../utils/apiResponse.js');
-
-const createProfile = async (req, res, next) => {
-  try {
-    const { firstName, lastName, email, phone } = req.body;
-
-    let profile = await EcommProfile.findOne({
-      owner: req.user._id,
-    });
-
-    if (profile) {
-      throw new ApiError(400, 'Profile already exists');
-    }
-    const userProfile = await EcommProfile.create({
-      email,
-      phoneNumber: phone,
-      firstName,
-      lastName,
-      owner: req.user._id,
-    });
-    if (!userProfile) {
-      throw new ApiError(500, 'Failed to create user profile');
-    }
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, userProfile, 'User profile created successfully')
-      );
-  } catch (error) {
-    next(error);
-  }
-};
 
 const getMyEcomProfile = async (req, res, next) => {
   try {
@@ -39,7 +7,13 @@ const getMyEcomProfile = async (req, res, next) => {
       owner: req.user._id,
     });
     if (!profile) {
-      throw new ApiError(404, 'Profile does not exist');
+      profile = await EcommProfile.create({
+        email: 'john@gmail.com',
+        phoneNumber: '9192100000',
+        firstName: 'John',
+        lastName: 'Deo',
+        owner: req.user._id,
+      });
     }
     return res
       .status(200)
@@ -52,20 +26,36 @@ const getMyEcomProfile = async (req, res, next) => {
 const updateEcomProfile = async (req, res, next) => {
   try {
     const { firstName, lastName, phoneNumber, email } = req.body;
-    const profile = await EcommProfile.findOneAndUpdate(
-      {
+
+    // Check if a profile exists for the current user
+    let profile = await EcommProfile.findOne({ owner: req.user._id });
+
+    if (!profile) {
+      // If no profile exists, create a new one
+      profile = await EcommProfile.create({
         owner: req.user._id,
-      },
-      {
-        $set: {
-          firstName,
-          lastName,
-          phoneNumber,
-          email,
+        firstName,
+        lastName,
+        phoneNumber,
+        email,
+      });
+    } else {
+      // If a profile exists, update it
+      profile = await EcommProfile.findOneAndUpdate(
+        { owner: req.user._id },
+        {
+          $set: {
+            firstName,
+            lastName,
+            phoneNumber,
+            email,
+          },
         },
-      },
-      { new: true }
-    );
+        { new: true }
+      );
+    }
+
+    // Send response
     return res
       .status(200)
       .json(new ApiResponse(200, profile, 'User profile updated successfully'));
@@ -75,7 +65,6 @@ const updateEcomProfile = async (req, res, next) => {
 };
 
 module.exports = {
-  createProfile,
   getMyEcomProfile,
   updateEcomProfile,
 };
