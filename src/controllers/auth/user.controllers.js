@@ -424,8 +424,11 @@ const updateAvatar = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(404, 'User not found');
   }
-  const localFIlePath = req.file.path;
-  const avatar = await uploadOnCloudinary(localFIlePath);
+  const base64Data = req.body.data;
+
+  data = `data:image/jpeg;base64,${base64Data}`;
+
+  const avatar = await uploadOnCloudinary(data);
   user.avatar.url = avatar.url;
   await user.save({ validateBeforeSave: false });
   return res
