@@ -3,7 +3,12 @@ const { asyncHandler } = require('../utils/asyncHandler.js');
 const { Wishlist } = require('../models/wishlist.model.js');
 
 const getWishlist = asyncHandler(async (req, res) => {
-  const wishlist = await Wishlist.findOne({ owner: req.user._id });
+  let wishlist = await Wishlist.findOne({ owner: req.user._id });
+  if (!wishlist) {
+    wishlist = await Wishlist.create({
+      owner: req.user._id,
+    });
+  }
   return res
     .status(200)
     .json(new ApiResponse(200, wishlist, 'wishlist fetched successfully'));
