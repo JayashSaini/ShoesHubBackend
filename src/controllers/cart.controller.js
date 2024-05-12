@@ -86,26 +86,14 @@ const getCart = async (userId) => {
   );
 };
 
-const createCart = asyncHandler(async (req, res) => {
-  const existedCart = await Cart.findOne({
-    owner: req.user._id,
-  });
-
-  if (existedCart) {
-    throw new ApiError(400, 'Cart already existed');
-  }
-  const newCart = await Cart.create({
-    owner: req.user._id,
-  });
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, newCart, 'Cart created successfully'));
-});
-
 const getUserCart = asyncHandler(async (req, res) => {
   let cart = await getCart(req.user._id);
 
+  if (!cart._id) {
+    cart = await Cart.create({
+      owner: req.user._id,
+    });
+  }
   return res
     .status(200)
     .json(new ApiResponse(200, cart, 'Cart fetched successfully'));
@@ -116,9 +104,16 @@ const addItemOrUpdateItemQuantity = asyncHandler(async (req, res) => {
   const { quantity = 1 } = req.body;
 
   // fetch user cart
-  const cart = await Cart.findOne({
+  let cart = await Cart.findOne({
     owner: req.user._id,
   });
+
+  if (!cart) {
+    // if cart does not exist create a new cart
+    cart = await Cart.create({
+      owner: req.user._id,
+    });
+  }
 
   // See if product that user is adding exist in the db
   const product = await Product.findById(productId);
@@ -238,7 +233,6 @@ const clearCart = asyncHandler(async (req, res) => {
 
 module.exports = {
   getCart,
-  createCart,
   getUserCart,
   addItemOrUpdateItemQuantity,
   removeItemFromCart,
