@@ -11,8 +11,34 @@ const { MAXIMUM_SUB_IMAGE_COUNT } = require('../constants.js');
 const mongoose = require('mongoose');
 const { asyncHandler } = require('../utils/asyncHandler.js');
 
+const SortAndFilter = (sortType) => {
+  switch (sortType) {
+    case 'oldest':
+      return { $sort: { createdAt: 1 } }; // Assuming createdAt field exists
+
+    case 'newest':
+      return { $sort: { createdAt: -1 } }; // Assuming createdAt field exists
+
+    case 'aToz':
+      return { $sort: { name: 1 } }; // Assuming productName field exists
+
+    case 'zToa':
+      return { $sort: { name: -1 } }; // Assuming productName field exists
+
+    case 'highToLow':
+      return { $sort: { price: -1 } }; // Assuming price field exists
+
+    case 'lowToHigh':
+      return { $sort: { price: 1 } }; // Assuming price field exists
+    default:
+      return { $sort: { randomOrder: 1 } }; // Default sorting by randomOrder
+  }
+};
+
 const getAllProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, sortType = latest } = req.query;
+
+  const sortStage = SortAndFilter(sortType);
 
   const productAggregate = Product.aggregate([
     { $match: {} },
@@ -26,6 +52,7 @@ const getAllProducts = asyncHandler(async (req, res) => {
         randomOrder: 1,
       },
     },
+    sortStage,
   ]);
 
   const products = await Product.aggregatePaginate(
@@ -195,13 +222,15 @@ const getProductById = asyncHandler(async (req, res) => {
 
 const getProductsByCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
-  const { page = 1, limit = 10 } = req.query;
+  const { page = 1, limit = 10, sortType = latest } = req.query;
 
   const category = await Category.findById(categoryId).select('name _id');
 
   if (!category) {
     throw new ApiError(404, 'Category does not exist');
   }
+
+  const sortStage = SortAndFilter(sortType);
 
   const productAggregate = Product.aggregate([
     {
@@ -215,11 +244,7 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
         randomOrder: { $rand: {} },
       },
     },
-    {
-      $sort: {
-        randomOrder: 1,
-      },
-    },
+    sortStage,
   ]);
 
   const products = await Product.aggregatePaginate(
@@ -313,11 +338,12 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
 const getProductsByParentCategoryId = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
-  let { limit = 10, page = 1 } = req.query;
+  let { limit = 10, page = 1, sortType = 'latest' } = req.query;
   limit = parseInt(limit);
   page = parseInt(page);
 
   const skip = (page - 1) * limit;
+  const sortStage = SortAndFilter(sortType);
 
   const productAggregate = [
     {
@@ -354,11 +380,7 @@ const getProductsByParentCategoryId = asyncHandler(async (req, res) => {
         randomOrder: { $rand: {} },
       },
     },
-    {
-      $sort: {
-        randomOrder: 1,
-      },
-    },
+    sortStage,
     {
       $skip: skip,
     },
