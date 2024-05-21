@@ -10,6 +10,7 @@ const { getMongoosePaginationOptions } = require('../utils/helper.js');
 const { MAXIMUM_SUB_IMAGE_COUNT } = require('../constants.js');
 const mongoose = require('mongoose');
 const { asyncHandler } = require('../utils/asyncHandler.js');
+const { redis } = require('../config/redis.config.js');
 
 const SortAndFilter = (sortType) => {
   switch (sortType) {
@@ -36,10 +37,27 @@ const SortAndFilter = (sortType) => {
 };
 
 const getAllProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, sortType = latest } = req.query;
+  const { page = 1, limit = 10, sortType = 'latest' } = req.query;
+  const cacheKey = `products:page:${page}:limit:${limit}:sort:${sortType}`;
 
+  // Attempt to fetch cached data
+  const cachedData = await redis.get(cacheKey);
+
+  if (cachedData) {
+    const products = JSON.parse(cachedData);
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          products,
+          'Products fetched successfully from cache'
+        )
+      );
+  }
+
+  // Fetch data from the database
   const sortStage = SortAndFilter(sortType);
-
   const productAggregate = Product.aggregate([
     { $match: {} },
     {
@@ -57,15 +75,11 @@ const getAllProducts = asyncHandler(async (req, res) => {
 
   const products = await Product.aggregatePaginate(
     productAggregate,
-    getMongoosePaginationOptions({
-      page,
-      limit,
-      customLabels: {
-        totalDocs: 'totalProducts',
-        docs: 'products',
-      },
-    })
+    getMongoosePaginationOptions({ page, limit })
   );
+
+  // Cache the data
+  await redis.set(cacheKey, JSON.stringify(products), 'EX', 60); // Cache for 60 seconds
 
   return res
     .status(200)
@@ -209,10 +223,19 @@ const updateProduct = asyncHandler(async (req, res) => {
 
 const getProductById = asyncHandler(async (req, res) => {
   const { productId } = req.params;
-  const product = await Product.findById(productId);
+  let product;
+  const cachedProduct = await redis.get(`product:${productId}`);
 
-  if (!product) {
-    throw new ApiError(404, 'Product does not exist');
+  if (cachedProduct) {
+    product = JSON.parse(cachedProduct);
+  } else {
+    product = await Product.findById(productId);
+
+    if (!product) {
+      throw new ApiError(404, 'Product does not exist');
+    }
+
+    await redis.set(`product:${productId}`, JSON.stringify(product), 'EX', 60);
   }
 
   return res
@@ -222,7 +245,26 @@ const getProductById = asyncHandler(async (req, res) => {
 
 const getProductsByCategory = asyncHandler(async (req, res) => {
   const { categoryId } = req.params;
-  const { page = 1, limit = 10, sortType = latest } = req.query;
+  const { page = 1, limit = 10, sortType = 'latest' } = req.query;
+
+  // Construct cache key with category, page, limit, and sortType
+  const cacheKey = `category:${categoryId}:page:${page}:limit:${limit}:sort:${sortType}`;
+
+  // Try to get the cached data
+  const cachedData = await redis.get(cacheKey);
+
+  if (cachedData) {
+    const responseData = JSON.parse(cachedData);
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          responseData,
+          'Category products fetched successfully from cache'
+        )
+      );
+  }
 
   const category = await Category.findById(categoryId).select('name _id');
 
@@ -234,7 +276,6 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
 
   const productAggregate = Product.aggregate([
     {
-      // match the products with provided category
       $match: {
         category: new mongoose.Types.ObjectId(categoryId),
       },
@@ -259,12 +300,17 @@ const getProductsByCategory = asyncHandler(async (req, res) => {
     })
   );
 
+  const responseData = { ...products, category };
+
+  // Cache the result
+  await redis.set(cacheKey, JSON.stringify(responseData), 'EX', 60); // Cache for 60 seconds
+
   return res
     .status(200)
     .json(
       new ApiResponse(
         200,
-        { ...products, category },
+        responseData,
         'Category products fetched successfully'
       )
     );
@@ -345,6 +391,25 @@ const getProductsByParentCategoryId = asyncHandler(async (req, res) => {
   const skip = (page - 1) * limit;
   const sortStage = SortAndFilter(sortType);
 
+  // Construct cache key with categoryId, limit, page, and sortType
+  const cacheKey = `parentCategory:${categoryId}:limit:${limit}:page:${page}:sort:${sortType}`;
+
+  // Try to get the cached data
+  const cachedData = await redis.get(cacheKey);
+
+  if (cachedData) {
+    const responseData = JSON.parse(cachedData);
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          responseData,
+          'Products fetched successfully from cache'
+        )
+      );
+  }
+
   const productAggregate = [
     {
       $match: {
@@ -390,6 +455,9 @@ const getProductsByParentCategoryId = asyncHandler(async (req, res) => {
   ];
 
   const products = await Category.aggregate(productAggregate);
+
+  // Cache the result
+  await redis.set(cacheKey, JSON.stringify(products), 'EX', 60); // Cache for 60 seconds
 
   return res
     .status(200)

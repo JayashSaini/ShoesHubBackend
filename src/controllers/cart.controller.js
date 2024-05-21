@@ -3,6 +3,7 @@ const { Product } = require('../models/product.model.js');
 const { ApiError } = require('../utils/apiError.js');
 const { ApiResponse } = require('../utils/apiResponse.js');
 const { asyncHandler } = require('../utils/asyncHandler.js');
+const { redis } = require('../config/redis.config.js');
 
 const getCart = async (userId) => {
   const cartAggregation = await Cart.aggregate([
@@ -87,13 +88,22 @@ const getCart = async (userId) => {
 };
 
 const getUserCart = asyncHandler(async (req, res) => {
-  let cart = await getCart(req.user._id);
+  const cartKey = `cart:${req.user._id}`;
+  let cart = await redis.get(cartKey);
+
+  if (cart) {
+    cart = JSON.parse(cart);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, cart, 'Cart fetched successfully'));
+  }
+  cart = await getCart(req.user._id);
 
   if (!cart._id) {
-    cart = await Cart.create({
-      owner: req.user._id,
-    });
+    cart = await Cart.create({ owner: req.user._id });
   }
+
+  await redis.set(cartKey, JSON.stringify(cart), 'EX', 60);
   return res
     .status(200)
     .json(new ApiResponse(200, cart, 'Cart fetched successfully'));
